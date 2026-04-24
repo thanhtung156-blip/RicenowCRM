@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { X, Save, User, Phone, MapPin, Wallet } from "lucide-react";
 import { KhachHang } from "@/lib/db";
-import { BUOI, BUOI_LABELS, LOAI_HOP_DONG_LABELS } from "@/lib/constants";
+import { BUOI, BUOI_LABELS, LOAI_HOP_DONG_LABELS, type LoaiHopDong } from "@/lib/constants";
 
 interface CustomerFormProps {
   customer?: KhachHang;
@@ -141,11 +141,11 @@ export default function CustomerForm({ customer, onClose, onSuccess }: CustomerF
             </div>
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Loại hợp đồng</label>
-              <select
-                value={formData.loaiHopDong}
-                onChange={(e) => setFormData({ ...formData, loaiHopDong: e.target.value })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none text-sm"
-              >
+                <select
+                  value={formData.loaiHopDong}
+                  onChange={(e) => setFormData({ ...formData, loaiHopDong: e.target.value as LoaiHopDong })}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none text-sm"
+                >
                 {Object.entries(LOAI_HOP_DONG_LABELS).map(([key, val]) => (
                   <option key={key} value={key}>{val}</option>
                 ))}
@@ -199,14 +199,14 @@ export default function CustomerForm({ customer, onClose, onSuccess }: CustomerF
             </div>
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Trạng thái</label>
-              <select
-                value={formData.trangThai}
-                onChange={(e) => setFormData({ ...formData, trangThai: e.target.value })}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm"
-              >
-                <option value="active">Đang dùng</option>
-                <option value="inactive">Dừng hoạt động</option>
-              </select>
+                 <select
+                  value={formData.trangThai}
+                  onChange={(e) => setFormData({ ...formData, trangThai: e.target.value as "active" | "inactive" })}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm"
+                >
+                  <option value="active">Đang dùng</option>
+                  <option value="inactive">Dừng hoạt động</option>
+                </select>
             </div>
             <div className="md:col-span-2 space-y-1">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Địa chỉ giao hàng</label>

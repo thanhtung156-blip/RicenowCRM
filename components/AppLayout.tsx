@@ -38,9 +38,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [showUserMenu, setShowUserMenu] = React.useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
-  const userRole = (session?.user as {role?: string})?.role;
+  const userRole = session?.user?.role;
 
-  const filteredNavItems = navItems.filter(item => !item.roles || item.roles.includes(userRole));
+  const filteredNavItems = navItems.filter(item => {
+    if (!item.roles) return true;
+    if (!userRole) return false;
+    return item.roles.includes(userRole as "quan_ly" | "bep" | "ke_toan");
+  });
 
   return (
     <div className="flex h-screen bg-[#f2f5f8]">

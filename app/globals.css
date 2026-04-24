@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-misa-blue: #0072bc;
+  --color-misa-blue-dark: #005a96;
+  --color-misa-blue-light: #e6f1f8;
+}
+
+:root {
+  --misa-blue: #0072bc;
+  --misa-blue-dark: #005a96;
+  --misa-blue-light: #e6f1f8;
+  --misa-gray-bg: #f2f5f8;
+  --misa-border: #e0e5e9;
+  --misa-text-main: #111111;
+  --misa-text-sub: #666666;
+}
+
+body {
+  background-color: var(--misa-gray-bg);
+  color: var(--misa-text-main);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .misa-card {
+    @apply bg-white border border-[var(--misa-border)] rounded-lg shadow-sm;
+  }
+  
+  .misa-btn-primary {
+    @apply bg-[var(--misa-blue)] hover:bg-[var(--misa-blue-dark)] text-white font-semibold px-4 py-2 rounded transition-all active:scale-95;
+  }
+
+  .misa-btn-secondary {
+    @apply bg-white border border-[var(--misa-border)] text-[var(--misa-text-main)] font-semibold px-4 py-2 rounded hover:bg-slate-50 transition-all active:scale-95;
+  }
+
+  .misa-table {
+    @apply w-full text-left border-collapse bg-white border border-[var(--misa-border)];
+  }
+
+  .misa-table th {
+    @apply bg-slate-100 px-4 py-3 text-[10px] font-black text-[var(--misa-text-sub)] uppercase tracking-wider border-b border-r border-[var(--misa-border)];
+  }
+
+  .misa-table td {
+    @apply px-4 py-2.5 text-sm border-b border-r border-slate-100 text-[var(--misa-text-main)];
+  }
+
+  .misa-table tr:nth-child(even) {
+    @apply bg-slate-50/30;
+  }
+
+  .misa-input {
+    @apply w-full p-2.5 bg-white border border-[var(--misa-border)] rounded focus:border-[var(--misa-blue)] focus:ring-1 focus:ring-[var(--misa-blue)] outline-none transition-all text-sm;
+  }
+}
+
+/* Custom scrollbar for enterprise look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Next.js loading bar color */
+#nprogress .bar {
+  background: var(--misa-blue) !important;
+}

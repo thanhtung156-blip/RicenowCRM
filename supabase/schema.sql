@@ -129,3 +129,17 @@ INSERT INTO cai_dat (key, value) VALUES
   ('googleFormUrl', ''),
   ('version',       '1.0.0')
 ON CONFLICT (key) DO NOTHING;
+
+-- =============================================================
+-- Row Level Security
+-- App dùng service_role key (server-side) → bypass RLS hoàn toàn.
+-- Bật RLS để chặn truy cập trực tiếp qua anon key.
+-- Không cần thêm policy — không có policy = deny all cho anon/authenticated.
+-- =============================================================
+ALTER TABLE khach_hang    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE don_hang      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ke_mon        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tong_hop_ngay ENABLE ROW LEVEL SECURITY;
+ALTER TABLE thanh_toan    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE nguoi_dung    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cai_dat       ENABLE ROW LEVEL SECURITY;

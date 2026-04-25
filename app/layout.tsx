@@ -7,7 +7,7 @@ import { APP_LANGUAGE } from "@/lib/constants";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Ricenow CRM v1.0.0 - Quản lý suất ăn công nghiệp",
+  title: "Ricenow CRM v1.0.2 - Quản lý suất ăn công nghiệp",
   description: "Hệ thống quản lý suất ăn, đơn hàng và công nợ cho Ricenow",
 };
 

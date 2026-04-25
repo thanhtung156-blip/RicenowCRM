@@ -57,7 +57,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {/* Logo Section */}
           <div className="h-14 flex items-center px-5 bg-[#0072bc] text-white">
             <Grid className="w-5 h-5 mr-3" />
-            <span className="font-bold text-base tracking-tight uppercase">RICENOW CRM <span className="text-[10px] opacity-70 ml-1">v1.0.1</span></span>
+            <span className="font-bold text-base tracking-tight uppercase">RICENOW CRM <span className="text-[10px] opacity-70 ml-1">v1.0.2</span></span>
           </div>
 
           <nav className="flex-1 py-4 space-y-0.5 overflow-y-auto">

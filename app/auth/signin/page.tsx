@@ -1,14 +1,18 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState } from "react";
-import { LogIn, Mail, Lock, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { LogIn, Mail, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    signIn("credentials", { email: "admin@local.test", password: "local", callbackUrl: "/dashboard", redirect: true });
+  }, []);
 
   const handleLocalSignIn = async (e: React.FormEvent) => {
     e.preventDefault();

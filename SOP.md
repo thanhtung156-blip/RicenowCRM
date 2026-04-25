@@ -1,23 +1,24 @@
-# SOP.md — Quy trình vận hành hệ thống Catering CRM (Style MISA AMIS)
+# SOP.md — Quy trình vận hành Ricenow CRM
 
-> Tài liệu này dành cho **toàn bộ team** (Quản lý, Bếp, Kế toán). Đọc tài liệu này để biết ai làm gì, lúc nào, và khi nào hệ thống.
+> Tài liệu này dành cho **toàn bộ team** (Quản lý, Bếp, Kế toán). Đọc tài liệu này để biết ai làm gì, lúc nào, và dùng màn hình nào.
+> Link hệ thống: **https://ricenow-crm.vercel.app**
 
 ---
 
-## I. TỔNG QUAN HỆ THỐNG (SYSTEM SPECS)
+## I. TỔNG QUAN HỆ THỐNG
 
-### 1. Kiến trúc Dữ liệu (Hybrid Model)
-* **Database:** Google Sheets API (Giai đoạn 1) -> Migrate sang Supabase (Giai đoạn 2).
-* **Quy tắc:** Hệ thống quản lý theo quan hệ: `Khách hàng` -> `Thực đơn` -> `Đơn hàng ngày`.
+### 1. Kiến trúc Dữ liệu
+* **Database:** Supabase (PostgreSQL) — dữ liệu lưu trên cloud, không mất khi tắt máy.
+* **Quy tắc:** `Khách hàng` → `Thực đơn` → `Đơn hàng ngày` → `Tổng hợp sản xuất`
 
 ### 2. Giao diện & Trải nghiệm (UI/UX)
-* **Style:** MISA AMIS (Sạch sẽ, Corporate Blue, Sidebar cố định bên trái).
-* **Dashboard:** Hiển thị thẻ Card tóm tắt: Tổng suất trưa, Tổng món mặn (Thịt/Cá/Sườn...), trạng thái in ấn.
+* **Style:** MISA AMIS — Sạch sẽ, sidebar cố định bên trái, chữ rõ ràng.
+* **Bếp:** Font lớn tối thiểu 18px, số suất 48px — đọc được từ xa trên tablet.
 
-### 3. Module in ấn (Printing Engine)
-* **Kích thước:** A5 (Nằm ngang hoặc dọc).
-* **Công nghệ:** Mapping dữ liệu từ `Daily_Orders` vào HTML Template. 
-* **Tính năng:** In hàng loạt (Bulk Print) theo Tuyến/Giờ giao hoặc in lẻ từng khách.
+### 3. Module in ấn
+* **Kích thước:** A5 dọc.
+* **Công nghệ:** HTML template → `window.print()` — không cần cài phần mềm.
+* **Tính năng:** In tất cả nhãn 1 lần hoặc in lẻ từng đơn.
 
 ---
 
@@ -25,8 +26,8 @@
 
 ### 1. Tài khoản & Đăng nhập
 
-- Hệ thống đăng nhập bằng **tài khoản Google** (Gmail)
-- Chỉ tài khoản được **Quản lý thêm vào danh sách** mới truy cập được
+- Hệ thống đăng nhập bằng **email nội bộ** hoặc **tài khoản Google** (khi đã cấu hình)
+- Chỉ tài khoản được **Quản lý thêm vào hệ thống** mới truy cập được
 - Nếu bị lỗi "Không có quyền truy cập" → liên hệ quản lý để thêm tài khoản
 
 | Vai trò | Màn hình mặc định sau login | Có thể vào trang khác? |
@@ -135,16 +136,17 @@
 
 | Sự cố | Xử lý |
 |---|---|
-| Đăng nhập không được | Báo quản lý kiểm tra tài khoản trong Sheet NguoiDung |
-| Dữ liệu không lưu được | Kiểm tra kết nối internet, thử lại, nếu vẫn lỗi → nhập thẳng vào Sheets tạm |
+| Đăng nhập không được | Báo quản lý kiểm tra email trong bảng nguoi_dung trên Supabase |
+| Dữ liệu không lưu được | Kiểm tra kết nối internet, thử lại, chụp màn hình báo quản lý |
 | In nhãn bị sai kích thước | Xem hướng dẫn cài đặt máy in mục 5 (Khổ A5) |
-| Số liệu trên web khác Sheets | Bấm F5 refresh — web đọc trực tiếp từ Sheets |
-| Lỗi "Lỗi hệ thống" | Chụp màn hình, báo quản lý, nhập dữ liệu vào Sheets trực tiếp |
+| Số liệu không cập nhật | Bấm F5 refresh — web đọc trực tiếp từ database |
+| Lỗi "Lỗi hệ thống" | Chụp màn hình lỗi (F12 → Console), báo quản lý kèm ảnh chụp |
 
 ---
 
 ### 7. Liên hệ hỗ trợ kỹ thuật
 
 - **Quản lý hệ thống:** [Điền tên + SĐT]
-- **Link Google Sheets backup:** [Điền link]
-- **Link website:** [Điền URL Vercel]
+- **Link website:** https://ricenow-crm.vercel.app
+- **Supabase Dashboard:** https://supabase.com/dashboard/project/inolrowsgfvrqinopnqe
+- **GitHub:** https://github.com/thanhtung156-blip/RicenowCRM

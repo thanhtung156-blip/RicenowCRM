@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
       SUPABASE_SERVICE_ROLE_KEY: placeholder-key-for-build
       NEXTAUTH_SECRET: ci-secret-placeholder
       NEXTAUTH_URL: http://localhost:3000

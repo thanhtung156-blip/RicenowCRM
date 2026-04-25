@@ -20,7 +20,8 @@
 11. [Quy ước code](#11-quy-ước-code)
 12. [Cài đặt & Chạy local](#12-cài-đặt--chạy-local)
 13. [Deploy lên Vercel](#13-deploy-lên-vercel)
-14. [Roadmap phát triển](#14-roadmap-phát-triển)
+14. [Development Workflow](#14-development-workflow)
+15. [Roadmap phát triển](#15-roadmap-phát-triển)
 
 ---
 
@@ -766,7 +767,80 @@ Khi push lên `main` → Vercel tự detect → build → deploy. Không cần c
 
 ---
 
-## 14. Roadmap phát triển
+## 14. Development Workflow
+
+Quy trình chuẩn mỗi khi sửa code — theo đúng thứ tự này.
+
+### Các bước
+
+```
+1. EDIT       → sửa code, chạy npm run dev, kiểm tra trên localhost:3000
+2. VERIFY     → npm test (unit tests phải pass), test UI trên browser
+3. DOCS       → cập nhật đúng file tài liệu (xem bảng bên dưới)
+4. VERSION    → bump version nếu cần (xem quy tắc)
+5. COMMIT     → git commit message rõ theo format
+6. PUSH       → git push origin main → Vercel tự build & deploy
+7. SMOKE TEST → mở https://ricenow-crm.vercel.app, kiểm tra luồng chính
+```
+
+### Cập nhật tài liệu nào?
+
+| Thay đổi gì | File cần update |
+|---|---|
+| Thêm/sửa business rule | `SPEC.md` |
+| Thêm bảng DB, đổi schema | `supabase/schema.sql` + `CLAUDE.md` + `README.md §5` |
+| Đổi quy trình vận hành | `SOP.md` |
+| Thêm API mới, đổi kiến trúc | `README.md §7` |
+| Thêm env var mới | `README.md §12` + `CLAUDE.md` |
+| Bug fix nhỏ, UI tweak | Không cần update docs |
+
+### Quy tắc bump version
+
+| Loại thay đổi | Bump | Ví dụ |
+|---|---|---|
+| Bug fix, UI nhỏ | patch `1.0.x` | Sửa lỗi sort, đổi màu |
+| Tính năng mới hoàn chỉnh | minor `1.x.0` | Thêm màn hình báo cáo tháng |
+| Đổi DB schema / breaking change | major `x.0.0` | Đổi cấu trúc bảng don_hang |
+
+**Bump version cần sửa 3 chỗ:**
+```
+package.json                 → "version": "x.x.x"
+components/AppLayout.tsx     → v x.x.x (hiển thị trong sidebar)
+app/layout.tsx               → title metadata
+```
+
+### Commit message format
+
+```
+<type>: <mô tả ngắn gọn>
+
+type:
+  feat     → tính năng mới
+  fix      → bug fix
+  chore    → version bump, deps, config
+  docs     → tài liệu
+  refactor → refactor không đổi behavior
+  test     → thêm/sửa test
+
+Ví dụ:
+  feat: thêm màn hình báo cáo doanh thu tháng
+  fix: sửa lỗi tính buffer khi soSuat = 0
+  chore: bump version lên 1.1.0
+  docs: cập nhật schema bảng ke_mon
+```
+
+### Smoke test checklist (sau mỗi deploy)
+
+- [ ] Truy cập https://ricenow-crm.vercel.app → tự login, vào /dashboard
+- [ ] Chọn ngày hôm nay → thấy dữ liệu (hoặc bảng trống, không có lỗi đỏ)
+- [ ] Vào /don-hang → danh sách load được
+- [ ] Vào /khach-hang → danh sách load được
+- [ ] Vào /bep → màn hình hiển thị đúng
+- [ ] Mở DevTools (F12) → Console không có lỗi đỏ
+
+---
+
+## 15. Roadmap phát triển
 
 ### Ưu tiên cao (cần làm sớm)
 

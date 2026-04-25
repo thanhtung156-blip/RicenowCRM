@@ -4,21 +4,30 @@
 
 ## Hệ thống là gì
 CRM cho đơn vị cung cấp suất ăn công nghiệp (~20-40 KH doanh nghiệp, ~1000-1500 suất/ngày).
-Stack: Next.js 16 App Router + Tailwind + Google Sheets API v4 (Service Account) + NextAuth Google OAuth + Deploy Vercel.
+Stack: Next.js 16 App Router + Tailwind + **Supabase (PostgreSQL)** + NextAuth Google OAuth + Deploy Vercel.
 
 ## Database
-**Không có SQL database.** Toàn bộ data lưu trong **1 Google Spreadsheet**, gồm 7 sheets:
-- `KhachHang` — danh sách KH (16 cột A–P)
-- `DonHang` — đơn đặt suất hàng ngày (15 cột A–O)
-- `KeMon` — thực đơn theo ngày (10 cột A–J)
-- `TongHopNgay` — tổng hợp cuối ngày (9 cột A–I)
-- `ThanhToan` — công nợ & thanh toán (10 cột A–J)
-- `NguoiDung` — tài khoản nội bộ, lookup role sau OAuth (4 cột A–D)
-- `CaiDat` — key-value config (bufferPercent, gioChotDon(09:00), tenDonVi, sdtLienHe)
+**Supabase (PostgreSQL).** 7 tables, schema tại `supabase/schema.sql`, seed tại `supabase/seed.sql`:
+- `khach_hang` — danh sách KH
+- `don_hang` — đơn đặt suất hàng ngày (`chi_tiet_mon` lưu kiểu JSONB)
+- `ke_mon` — thực đơn theo ngày (surrogate PK + 2 partial unique indexes cho global/KH-specific menu)
+- `tong_hop_ngay` — tổng hợp cuối ngày (PK composite: ngay+buoi+ma_mon)
+- `thanh_toan` — công nợ & thanh toán
+- `nguoi_dung` — tài khoản nội bộ, lookup role sau OAuth (PK: email)
+- `cai_dat` — key-value config
+
+**DB Access Pattern:**
+```typescript
+// Server-side only, dùng Service Role Key (bypass RLS)
+import { supabase } from '@/lib/supabase';
+// Tất cả CRUD đi qua lib/db.ts — không gọi supabase trực tiếp trong API routes
+```
+
+**Column naming:** snake_case trong DB, camelCase trong TypeScript (mapping trong `lib/db.ts`).
 
 ## Auth & Roles
 - NextAuth + Google OAuth login
-- Sau login: lookup email trong Sheet NguoiDung → lấy role
+- Sau login: lookup email trong bảng `nguoi_dung` → lấy role
 - 3 roles: `quan_ly`, `bep`, `ke_toan`
 - **KHÔNG có route restriction** — mọi user đăng nhập đều thấy toàn bộ dữ liệu
 - Sự khác biệt duy nhất: màn hình mặc định sau login
@@ -62,7 +71,7 @@ Dùng `window.print()`, không thư viện ngoài
 ```typescript
 APP_LANGUAGE = "vi"  // Toàn bộ UI tiếng Việt
 UI_THEME = "light"
-SHEETS = { KHACH_HANG, DON_HANG, KE_MON, TONG_HOP, THANH_TOAN, NGUOI_DUNG, CAI_DAT }
+// SHEETS enum vẫn còn nhưng chỉ dùng làm reference tên table — không dùng trong Supabase queries
 ROLES = { QUAN_LY: "quan_ly", BEP: "bep", KE_TOAN: "ke_toan" }
 BUOI = { SANG, TRUA, CHIEU, TRAI_CAY }
 TRANG_THAI_DON = { CHO_XAC_NHAN, DA_XAC_NHAN, DANG_NAU, HOAN_THANH, HUY }
@@ -87,19 +96,22 @@ try {
 ```
 
 ## Files chính cần xem khi làm feature mới
-- `/lib/sheets.ts` — tất cả Sheets CRUD
-- `/lib/constants.ts` — enums và sheet names
+- `/lib/supabase.ts` — Supabase client (server-side)
+- `/lib/db.ts` — tất cả CRUD (mapper snake_case ↔ camelCase)
+- `/lib/constants.ts` — enums và tên bảng
 - `/app/api/don-hang/route.ts` — ví dụ API route chuẩn
 - `/components/OrderTable.tsx` — bảng đơn hàng với inline edit
-- `SPEC.md` — schema đầy đủ + business rules + test cases
+- `supabase/schema.sql` — schema database đầy đủ
+- `SPEC.md` — business rules + test cases
 
 ## Gotchas
-- ❌ Không gọi Sheets API trong vòng lặp → dùng batchGet
-- ❌ Không dùng `any` TypeScript
-- ❌ Không hardcode tên sheet — dùng `SHEETS.XXX`
-- ❌ Service Account key chỉ ở env, không commit lên git
-- ✅ Date lưu Sheets: ISO 8601 (YYYY-MM-DD), hiển thị UI: DD/MM/YYYY
-- ✅ Tiền lưu Sheets: số nguyên VNĐ, hiển thị: formatVND()
+- ❌ Không import `supabase` trực tiếp trong API routes — luôn dùng qua `lib/db.ts`
+- ❌ Không dùng `any` TypeScript (trừ row mapper nội bộ trong db.ts)
+- ❌ Supabase keys chỉ ở env, không commit lên git
+- ✅ Date lưu DB: ISO 8601 (YYYY-MM-DD), hiển thị UI: DD/MM/YYYY
+- ✅ Tiền lưu DB: số nguyên VNĐ, hiển thị: formatVND()
+- ✅ `chi_tiet_mon` trong `don_hang` là JSONB trong DB, JSON string trong TypeScript interface
+- ✅ Env vars cần thiết: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXTAUTH_SECRET`
 
 # General AI Guidelines
 

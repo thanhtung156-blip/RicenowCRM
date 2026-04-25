@@ -1,74 +1,82 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { getRows } from "@/lib/sheets";
-import { SHEETS, ROLES, Role } from "@/lib/constants";
-import { getConfig, isConfigured } from "@/lib/config";
+import { supabase } from "@/lib/supabase";
+import { ROLES, Role } from "@/lib/constants";
 
 const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Local Access",
       credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" }
+        email:    { label: "Email",    type: "text" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const configured = isConfigured();
-        
-        // If not configured, allow anyone to enter as admin for testing
-        if (!configured) {
-          return { 
-            id: "1", 
-            name: "Local Admin", 
-            email: credentials?.email || "admin@local.test", 
-            role: "quan_ly" 
-          };
-        }
-
-        // If configured, look up in sheet
+        if (!credentials?.email) return null;
         try {
-          const rows = await getRows(SHEETS.NGUOI_DUNG);
-          const userInfo = rows.find(row => row[0] === credentials?.email && row[3] === "active");
-          if (userInfo) {
-            return { 
-              id: String(userInfo[0]), 
-              name: String(userInfo[1]), 
-              email: String(userInfo[0]), 
-              role: String(userInfo[2]) 
-            };
+          const { data: user } = await supabase
+            .from("nguoi_dung")
+            .select("email, ho_ten, role")
+            .eq("email", credentials.email)
+            .eq("trang_thai", "active")
+            .single();
+
+          if (user) {
+            return { id: user.email, name: user.ho_ten, email: user.email, role: user.role };
           }
         } catch (e) {
-          console.error("Local Auth Error:", e);
+          console.error("[auth] CredentialsProvider:", e);
+        }
+        // Fallback: nếu không tìm thấy trong DB nhưng là môi trường dev
+        if (process.env.NODE_ENV === "development") {
+          return { id: "1", name: "Local Admin", email: credentials.email, role: ROLES.QUAN_LY };
         }
         return null;
-      }
-    })
+      },
+    }),
   ],
   callbacks: {
     async signIn({ user, account }) {
       if (!user.email) return false;
       if (account?.provider === "credentials") return true;
 
+      // Google OAuth: kiểm tra email có trong bảng nguoi_dung không
       try {
-        const rows = await getRows(SHEETS.NGUOI_DUNG);
-        const userInfo = rows.find(row => row[0] === user.email && row[3] === "active");
-        return !!userInfo;
+        const { data } = await supabase
+          .from("nguoi_dung")
+          .select("email, role")
+          .eq("email", user.email)
+          .eq("trang_thai", "active")
+          .single();
+        return !!data;
       } catch (error) {
-        console.error("Auth SignIn Error:", error);
+        console.error("[auth] signIn:", error);
         return false;
       }
     },
-    async jwt({ token, user }) {
+
+    async jwt({ token, user, account }) {
       if (user) {
         const userWithRole = user as { role?: Role };
-        token.role = userWithRole.role;
+        if (userWithRole.role) {
+          token.role = userWithRole.role;
+        } else if (account?.provider === "google" && user.email) {
+          // Google OAuth: lấy role từ DB khi issue JWT lần đầu
+          const { data } = await supabase
+            .from("nguoi_dung")
+            .select("role")
+            .eq("email", user.email)
+            .single();
+          token.role = data?.role as Role | undefined;
+        }
       }
       return token;
     },
+
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).role = token.role;
+        (session.user as Record<string, unknown>).role = token.role;
       }
       return session;
     },
@@ -79,13 +87,12 @@ const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-dev",
 };
 
-// Add Google provider if configured
-const config = getConfig();
-if (config.GOOGLE_CLIENT_ID && config.GOOGLE_CLIENT_SECRET) {
+// Thêm Google provider nếu có credentials
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   authOptions.providers.push(
     GoogleProvider({
-      clientId: config.GOOGLE_CLIENT_ID,
-      clientSecret: config.GOOGLE_CLIENT_SECRET,
+      clientId:     process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     })
   );
 }

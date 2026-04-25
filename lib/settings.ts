@@ -1,5 +1,4 @@
-import { SHEETS } from "./constants";
-import { getRows, updateRow } from "./sheets";
+import { supabase } from './supabase';
 
 export interface BusinessSettings {
   bufferPercent: number;
@@ -9,48 +8,40 @@ export interface BusinessSettings {
   googleFormUrl: string;
 }
 
+const DEFAULTS: BusinessSettings = {
+  bufferPercent: 10,
+  gioChotDon: '08:30',
+  tenDonVi: 'Bếp Ricenow',
+  sdtLienHe: '',
+  googleFormUrl: '',
+};
+
 export async function getBusinessSettings(): Promise<BusinessSettings> {
   try {
-    const rows = await getRows(SHEETS.CAI_DAT);
+    const { data, error } = await supabase.from('cai_dat').select('key, value');
+    if (error) throw error;
 
-    const settings: BusinessSettings = {
-      bufferPercent: 10,
-      gioChotDon: "08:30",
-      tenDonVi: "Bếp Ricenow",
-      sdtLienHe: "",
-      googleFormUrl: "",
-    };
-
-    rows.forEach(row => {
-      const key = String(row[0] ?? "");
-      const value = row[1];
-      if (key === "bufferPercent") settings.bufferPercent = Number(value);
-      else if (key === "gioChotDon") settings.gioChotDon = String(value ?? "");
-      else if (key === "tenDonVi") settings.tenDonVi = String(value ?? "");
-      else if (key === "sdtLienHe") settings.sdtLienHe = String(value ?? "");
-      else if (key === "googleFormUrl") settings.googleFormUrl = String(value ?? "");
-    });
-
+    const settings = { ...DEFAULTS };
+    for (const row of data ?? []) {
+      const key = String(row.key);
+      const val = String(row.value ?? '');
+      if (key === 'bufferPercent') settings.bufferPercent = Number(val);
+      else if (key === 'gioChotDon')   settings.gioChotDon  = val;
+      else if (key === 'tenDonVi')     settings.tenDonVi    = val;
+      else if (key === 'sdtLienHe')    settings.sdtLienHe   = val;
+      else if (key === 'googleFormUrl') settings.googleFormUrl = val;
+    }
     return settings;
   } catch (error) {
-    console.error("Error fetching business settings:", error);
-    return {
-      bufferPercent: 10,
-      gioChotDon: "08:30",
-      tenDonVi: "Bếp Ricenow",
-      sdtLienHe: "",
-      googleFormUrl: "",
-    };
+    console.error('[settings] getBusinessSettings:', error);
+    return DEFAULTS;
   }
 }
 
 export async function updateBusinessSetting(key: string, value: unknown) {
-  const rows = await getRows(SHEETS.CAI_DAT);
-  const rowIndex = rows.findIndex(row => row[0] === key);
-
-  if (rowIndex !== -1) {
-    await updateRow(SHEETS.CAI_DAT, rowIndex + 1, [key, String(value ?? "")]);
-  } else {
-    console.warn(`Setting key ${key} not found in ${SHEETS.CAI_DAT}`);
-  }
+  const { error } = await supabase
+    .from('cai_dat')
+    .update({ value: String(value ?? '') })
+    .eq('key', key);
+  if (error) throw error;
 }
